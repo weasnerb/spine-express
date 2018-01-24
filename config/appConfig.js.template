@@ -1,0 +1,9 @@
+// This is a template .js file
+// Simply create appConfig.js from this file and replace all ********** with the actual values.
+
+const appConfig = {
+    name : '******'
+};
+
+// Need to export the variable for use.
+module.exports = appConfig;

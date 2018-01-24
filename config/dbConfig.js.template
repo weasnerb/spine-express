@@ -1,0 +1,13 @@
+// This is a template .js file
+// Simply create dbConfig.js from this file and replace all ********** with the actual values.
+
+const dbConfig = {
+    'host': '**********',
+    'user': '**********',
+    'password': '**********',
+    'database': '**********'
+};
+
+
+// Need to export the variable for use.
+module.exports = dbConfig;
