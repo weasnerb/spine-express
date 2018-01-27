@@ -2,5 +2,5 @@
 
 ## [<- Back](../../README.md)
 
-* [Authentication](./Authentication/Auth.md)
-* [User](./User/User.md)
+* [Authentication](./authentication/auth.md)
+* [User](./user/user.md)

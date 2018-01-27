@@ -2,7 +2,9 @@
 
 var appConfig = require('../../config/appConfig'),
     bcrypt = require('bcrypt'),
-    jwt = require('jsonwebtoken');
+    db = require('../mySql'),
+    jwt = require('jsonwebtoken'),
+    userController = require('../user/userController');
 
 exports.checkIfLoggedIn = function (req, res, next) {
     if (req.headers && req.headers.authorization && req.headers.authorization.split(' ')[0] === 'JWT') {
@@ -44,19 +46,12 @@ exports.loginRequired = function (req, res, next) {
  */
 exports.register = function (req, res) {
     if (req.body.username && req.body.email && req.body.password) {
-        var newUser = new User(req.body);
-        newUser.hashPassword = bcrypt.hashSync(req.body.password, 10);
-        
-        userController.saveUser(newUser)
+        var hashedPassword = bcrypt.hashSync(req.body.password, appConfig.saltRounds);
+
+        userController.saveUser(req.body.username, req.body.email, hashedPassword)
             .then(function (user) {
-                user.hashPassword = undefined;
-                var token = jwt.sign({
-                    email: user.email,
-                    username: user.username,
-                    _id: user._id
-                }, 'CornHub');
                 return res.json({
-                    'token': "JWT " + token,
+                    'token': "JWT " + signJWT(user.id, user.username, user.email),
                     'user': user
                 });
             }).catch((err) => {
@@ -81,21 +76,9 @@ exports.login = function (req, res) {
     if (req.body.email && req.body.password) {
         var promise = userController.getUserFromEmail(req.body.email);
         promise.then(function (user) {
-            if (user.comparePassword(req.body.password)) {
-                if (!user.shoppingList) {
-                    user.shoppingList = new ShoppingList();
-                }
-                if (!user.pantry) {
-                    user.pantry = new Pantry();
-                }
-                user.hashPassword = undefined;
-                var token = jwt.sign({
-                    email: user.email,
-                    username: user.username,
-                    _id: user._id
-                }, 'CornHub');
+            if (bcrypt.compareSync(user.password, req.body.password)) {
                 return res.json({
-                    'token': "JWT " + token,
+                    'token': "JWT " + signJWT(user.id, user.username, user.email),
                     'user': user
                 });
             } else {
@@ -112,7 +95,7 @@ exports.login = function (req, res) {
         return res.status(400).json({
             message: 'Valid email and password required'
         });
-    }  
+    }
 };
 
 /**
@@ -122,41 +105,56 @@ exports.login = function (req, res) {
  */
 exports.changePassword = function (req, res) {
     if (req.body.currentPassword && req.body.newPassword) {
-        var promise = userController.getUserFromId(req.user._id);
-        promise.then(function (user) {
-            if (req.body.currentPassword && req.body.newPassword) {
-                if (user.comparePassword(req.body.currentPassword)) {
-                    user.hashPassword = bcrypt.hashSync(req.body.newPassword, 10);
-                    userController.saveUser(user)
-                        .then(function (user) {
-                            user.hashPassword = undefined;
-                            return res.json({
-                                'user': user
+        userController.getUserFromId(req.user.id)
+            .then(function (user) {
+                if (req.body.currentPassword && req.body.newPassword) {
+                    if (bcrypt.compareSync(user.password, req.body.currentPassword)) {
+                        var hashedPassword = bcrypt.hashSync(req.body.newPassword, appConfig.saltRounds);
+
+                        userController.updateUser(user.id, ['password'], [hashedPassword])
+                            .then(function (user) {
+                                user.hashPassword = undefined;
+                                return res.json({
+                                    'user': user
+                                });
+                            })
+                            .catch((err) => {
+                                return res.status(400).json({
+                                    message: err.errmsg
+                                });
                             });
-                        })
-                        .catch((err) => {
-                            return res.status(400).json({
-                                message: err.errmsg
-                            });
+                    } else {
+                        res.status(401).json({
+                            message: 'Could Not Change Password, Incorrect Current Password.'
                         });
+                    }
                 } else {
-                    res.status(401).json({
-                        message: 'Could Not Change Password, Incorrect Current Password.'
+                    res.status(400).json({
+                        message: 'No currentPassword and/or newPassword passed in'
                     });
                 }
-            } else {
-                res.status(400).json({
-                    message: 'No currentPassword and/or newPassword passed in'
+            }).catch((err) => {
+                return res.status(400).json({
+                    message: err.errmsg
                 });
-            }
-        }).catch((err) => {
-            return res.status(400).json({
-                message: err.errmsg
             });
-        });
     } else {
         return res.status(400).json({
             message: 'Valid currentPassword and newPassword required'
         });
     }
+}
+
+/**
+ * Sign JWT
+ * @param {*} userId 
+ * @param {*} username 
+ * @param {*} email 
+ */
+function signJWT(userId, username, email) {
+    return jwt.sign({
+        id: userId,
+        username: username,
+        email: email
+    }, appConfig.name);
 }

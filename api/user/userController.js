@@ -1,6 +1,6 @@
 'use strict';
 
-
+var db = require('../mySql');
 
 /**
  * Get User from their _id
@@ -8,24 +8,10 @@
  */
 exports.getUserFromId = function (userId) {
     return new Promise((resolve, reject) => {
-        User.findById(userId, function (err, user) {
-            if (err) {
-                reject(err);
-            }
-            if (user) {
-                if (!user.shoppingList) {
-                    user.shoppingList = new ShoppingList();
-                }
-                if (!user.pantry) {
-                    user.pantry = new Pantry();
-                }
-                resolve(user);
-            } else {
-                var err = {
-                    errmsg: 'User not found.'
-                };
-                reject(err);
-            }
+        db.query('SELECT * FROM users WHERE id = ?', [userId], function (error, results, fields) {
+            if (error) reject(err);
+            console.log(results);
+            resolve(results);
         });
     });
 };
@@ -36,26 +22,10 @@ exports.getUserFromId = function (userId) {
  */
 exports.getUserFromEmail = function (userEmail) {
     return new Promise((resolve, reject) => {
-        User.findOne({
-            email: userEmail
-        }, function (err, user) {
-            if (err) {
-                reject(err);
-            }
-            if (user) {
-                if (!user.shoppingList) {
-                    user.shoppingList = new ShoppingList();
-                }
-                if (!user.pantry) {
-                    user.pantry = new Pantry();
-                }
-                resolve(user);
-            } else {
-                var err = {
-                    errmsg: 'User not found.'
-                };
-                reject(err);
-            }
+        db.query('SELECT * FROM users WHERE email = ?', [userEmail], function (error, results, fields) {
+            if (error) reject(err);
+            console.log(results);
+            resolve(results);
         });
     });
 };
@@ -64,21 +34,34 @@ exports.getUserFromEmail = function (userEmail) {
  * Save the passed in user
  * @param {*} userToSave 
  */
-exports.saveUser = function (userToSave) {
+exports.saveUser = function (username, email, password) {
     return new Promise((resolve, reject) => {
-        var user = new User(userToSave);
-        user.save(function (err, user) {
-            if (err) {
-                reject(err);
-            }
-            if (user) {
-                resolve(user);
-            } else {
-                var err = {
-                    errmsg: 'User not found.'
-                };
-                reject(err)
-            }
+        console.log('Inserting', username, email, password);
+        db.connect();
+        db.query('INSERT INTO Users SET username = ?, email = ?, password = ?', [username, email, password], function (error, results, fields) {
+            if (error) reject(err);
+            console.log('success');
+            console.log(results);
+            resolve(results);
+        });
+    });
+};
+
+/**
+ * Save the passed in user
+ * @param {*} userToSave 
+ */
+exports.updateUser = function (id, fields, values) {
+    return new Promise((resolve, reject) => {
+        var sql = 'UPDATE Users SET '
+        fields.forEach(element => {
+            sql += element + ' = ? '
+        });
+
+        db.query(sql, values, function (error, results, fields) {
+            if (error) reject(err);
+            console.log(results);
+            resolve(results);
         });
     });
 };
@@ -89,10 +72,7 @@ exports.saveUser = function (userToSave) {
  * @param {*} res 
  */
 exports.getLoggedInUser = function (req, res) {
-    req.user.hashPassword = undefined;
-    return res.json({
-        'user': req.user
-    });
+    return getUserFromId(req.user.id)
 };
 
 /**
@@ -101,23 +81,11 @@ exports.getLoggedInUser = function (req, res) {
  * @param {*} res 
  */
 exports.deleteLoggedInUser = function (req, res) {
-    User.remove({
-        email: req.user.email
-    }, function (err, user) {
-        if (err) {
-            return res.status(400).json({
-                message: err.errmsg
-            });
-        }
-        if (!user) {
-            res.status(400).json({
-                message: 'User not found.'
-            });
-        } else if (user) {
-            user.hashPassword = undefined;
-            return res.json({
-                'user': user
-            });
-        }
-    });
+    return new Promise((resolve, reject) => {
+        db.query('DELETE FROM Users WHERE id = ?;', [req.user.id], function (error, results, fields) {
+            if (error) reject(err);
+            console.log(results);
+            resolve(results);
+        });
+    })
 };

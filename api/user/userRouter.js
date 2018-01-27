@@ -6,7 +6,7 @@ var express = require('express'),
 /**
  * To make login required, use the middleware userController.loginRequired
  */
-router.get('/', authController.setUserInReq, userController.getLoggedInUser);
+router.get('/', authController.loginRequired, userController.getLoggedInUser);
 
 router.delete('/', authController.loginRequired, userController.deleteLoggedInUser);
 

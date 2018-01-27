@@ -2,7 +2,8 @@
 // Simply create appConfig.js from this file and replace all ********** with the actual values.
 
 const appConfig = {
-    name : '******'
+    name: '******',
+    saltRounds: 12
 };
 
 // Need to export the variable for use.

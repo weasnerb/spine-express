@@ -7,7 +7,7 @@ api.use('/auth', auth);
 
 // Set /api/user to use user
 var user = require('./user/userRouter');
-api.use('/user', user); 
+api.use('/user', user);
 
 // Need to export the api variable for use in app.js.
 module.exports = api;
