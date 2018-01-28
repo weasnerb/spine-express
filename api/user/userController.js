@@ -8,10 +8,9 @@ var db = require('../mySql');
  */
 exports.getUserFromId = function (userId) {
     return new Promise((resolve, reject) => {
-        db.query('SELECT * FROM users WHERE id = ?', [userId], function (error, results, fields) {
-            if (error) reject(err);
-            console.log(results);
-            resolve(results);
+        db.query('SELECT * FROM Users WHERE id = ?', [userId], function (error, results, fields) {
+            if (error) reject(error);
+            resolve(results[0]);
         });
     });
 };
@@ -22,10 +21,10 @@ exports.getUserFromId = function (userId) {
  */
 exports.getUserFromEmail = function (userEmail) {
     return new Promise((resolve, reject) => {
-        db.query('SELECT * FROM users WHERE email = ?', [userEmail], function (error, results, fields) {
-            if (error) reject(err);
+        db.query('SELECT * FROM Users WHERE email = ?', [userEmail], function (error, results, fields) {
+            if (error) reject(error);
             console.log(results);
-            resolve(results);
+            resolve(results[0]);
         });
     });
 };
@@ -37,12 +36,16 @@ exports.getUserFromEmail = function (userEmail) {
 exports.saveUser = function (username, email, password) {
     return new Promise((resolve, reject) => {
         console.log('Inserting', username, email, password);
-        db.connect();
         db.query('INSERT INTO Users SET username = ?, email = ?, password = ?', [username, email, password], function (error, results, fields) {
-            if (error) reject(err);
-            console.log('success');
-            console.log(results);
-            resolve(results);
+            if (error) {
+                reject(error);
+            } else {
+                exports.getUserFromId(results.insertId).then(function(user) {
+                    resolve(user);
+                }).catch((err) => {
+                    reject(err);
+                })
+            }
         });
     });
 };
@@ -59,7 +62,7 @@ exports.updateUser = function (id, fields, values) {
         });
 
         db.query(sql, values, function (error, results, fields) {
-            if (error) reject(err);
+            if (error) reject(error);
             console.log(results);
             resolve(results);
         });
@@ -72,7 +75,17 @@ exports.updateUser = function (id, fields, values) {
  * @param {*} res 
  */
 exports.getLoggedInUser = function (req, res) {
-    return getUserFromId(req.user.id)
+    exports.getUserFromId(req.user.id).then(function(user) {
+        // Don't send back the hashed password!
+        user.password = undefined;
+        return res.json({
+            'user': user
+        });
+    }).catch((err) => {
+        return res.status(400).json({
+            message: err.errmsg
+        });
+    })
 };
 
 /**
@@ -83,7 +96,7 @@ exports.getLoggedInUser = function (req, res) {
 exports.deleteLoggedInUser = function (req, res) {
     return new Promise((resolve, reject) => {
         db.query('DELETE FROM Users WHERE id = ?;', [req.user.id], function (error, results, fields) {
-            if (error) reject(err);
+            if (error) reject(error);
             console.log(results);
             resolve(results);
         });

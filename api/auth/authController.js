@@ -8,7 +8,7 @@ var appConfig = require('../../config/appConfig'),
 
 exports.checkIfLoggedIn = function (req, res, next) {
     if (req.headers && req.headers.authorization && req.headers.authorization.split(' ')[0] === 'JWT') {
-        jsonwebtoken.verify(req.headers.authorization.split(' ')[1], appConfig.name, function (err, decode) {
+        jwt.verify(req.headers.authorization.split(' ')[1], appConfig.name, function (err, decode) {
             if (err) {
                 req.user = undefined;
             } else {
@@ -50,6 +50,8 @@ exports.register = function (req, res) {
 
         userController.saveUser(req.body.username, req.body.email, hashedPassword)
             .then(function (user) {
+                // Don't send back the hashed password!
+                user.password = undefined;
                 return res.json({
                     'token': "JWT " + signJWT(user.id, user.username, user.email),
                     'user': user
@@ -76,7 +78,9 @@ exports.login = function (req, res) {
     if (req.body.email && req.body.password) {
         var promise = userController.getUserFromEmail(req.body.email);
         promise.then(function (user) {
-            if (bcrypt.compareSync(user.password, req.body.password)) {
+            if (bcrypt.compareSync(req.body.password, user.password)) {
+                // Don't send back the hashed password!
+                user.password = undefined;
                 return res.json({
                     'token': "JWT " + signJWT(user.id, user.username, user.email),
                     'user': user
@@ -108,7 +112,7 @@ exports.changePassword = function (req, res) {
         userController.getUserFromId(req.user.id)
             .then(function (user) {
                 if (req.body.currentPassword && req.body.newPassword) {
-                    if (bcrypt.compareSync(user.password, req.body.currentPassword)) {
+                    if (bcrypt.compareSync(req.body.currentPassword, user.password)) {
                         var hashedPassword = bcrypt.hashSync(req.body.newPassword, appConfig.saltRounds);
 
                         userController.updateUser(user.id, ['password'], [hashedPassword])

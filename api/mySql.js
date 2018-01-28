@@ -11,13 +11,8 @@ var connection = mysql.createConnection({
   database: dbConfig.database
 });
 
-connection.connect(function (err) {
-  if (err) {
-    console.error('error connecting: ' + err.stack);
-    return;
-  }
-
-  console.log('connected as id ' + connection.threadId);
+connection.connect(function(err) {
+  if (err) throw err;
 });
 
-exports = connection;
+module.exports = connection;
