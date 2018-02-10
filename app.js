@@ -1,4 +1,6 @@
-var express = require('express'),
+'use strict';
+
+const express = require('express'),
   app = express(),
   appConfig = require('./config/appConfig'),
   authController = require('./api/auth/authController'),
@@ -24,22 +26,24 @@ app.use(cookieParser());
  * Set user to Decoded JWT user on every request
  */
 app.use(function (req, res, next) {
-  authController.checkIfLoggedIn(req, res, next)
+  authController.verifyAndDecodeJwt(req, res, next)
 });
 
+// TODO: is this needed
 var db = require('./api/mySql');
 
 /**
  * Routing
  */
 // Set layer /api of requests using api
-var api = require('./api/apiRouter');
+const api = require('./api/apiRouter');
 app.use('/api', api);
 
 /**
  * Serve Static Files
  */
-app.use(express.static('build'));
-
+if (appConfig.staticRoute || appConfig.staticRoute !== '******') {
+  app.use(express.static(appConfig.staticRoute));
+}
 
 module.exports = app;

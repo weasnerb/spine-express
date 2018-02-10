@@ -1,17 +1,17 @@
 /**
  * SQL Connection
  */
-var mysql = require('mysql');
+const mysql = require('mysql');
 
-var dbConfig = require('../config/dbConfig');
-var connection = mysql.createConnection({
+const dbConfig = require('../config/dbConfig');
+const connection = mysql.createConnection({
   host: dbConfig.host,
   user: dbConfig.user,
   password: dbConfig.password,
   database: dbConfig.database
 });
 
-connection.connect(function(err) {
+connection.connect(function (err) {
   if (err) throw err;
 });
 
