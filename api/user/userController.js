@@ -8,7 +8,7 @@ const userModel = require('./userModel');
  * @param {*} res 
  */
 exports.getLoggedInUser = function (req, res) {
-    exports.getUserFromId(req.user.id).then(function (user) {
+    userModel.getUserFromId(req.user.id).then(function (user) {
         return res.json({
             'user': user
         });

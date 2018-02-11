@@ -101,7 +101,6 @@ exports.login = function (req, res) {
                 });
             });
         }).catch((error) => {
-            // FIXME: Not sure if this will catch if no user is found
             return res.status(401).json({
                 message: "User was not found."
             });
@@ -124,26 +123,23 @@ exports.changePassword = function (req, res) {
             bcrypt.compare(req.body.currentPassword, user.password).then(function (isValid) {
                 if (isValid) {
                     bcrypt.hash(req.body.newPassword, appConfig.saltRounds).then(function (hashedPassword) {
-                        userController.updateUser(user.id, ['password'], [hashedPassword]).then(function (user) {
-                            // FIXME: What does Update user Return? Do I need to send back the user if all that happened was a password update.
-                            // Don't send back the hashed password!
-                            user.password = undefined;
+                        userModel.updateUser(user.id, ['password'], [hashedPassword]).then(function (user) {
                             return res.json({
-                                'user': user
+                                message: "Password successfully changed."
                             });
                         }).catch((err) => {
                             return res.status(400).json({
-                                message: err.errmsg
+                                message: "Issue changing passwords."
                             });
                         });
                     }).catch((error) => {
                         res.status(401).json({
-                            message: "Authentication failed."
+                            message: "Issue changing passwords."
                         });
                     });
                 } else {
                     res.status(401).json({
-                        message: "Authentication failed."
+                        message: "Authentication failed. Incorrect current password."
                     });
                 }
             }).catch((error) => {
@@ -152,7 +148,6 @@ exports.changePassword = function (req, res) {
                 });
             });
         }).catch((err) => {
-            // FIXME: Not sure if this will catch if no user is found
             return res.status(400).json({
                 message: "User was not found."
             });

@@ -25,12 +25,7 @@ app.use(cookieParser());
 /**
  * Set user to Decoded JWT user on every request
  */
-app.use(function (req, res, next) {
-  authController.verifyAndDecodeJwt(req, res, next)
-});
-
-// TODO: is this needed
-var db = require('./api/mySql');
+app.use((req, res, next) => authController.verifyAndDecodeJwt(req, res, next));
 
 /**
  * Routing
