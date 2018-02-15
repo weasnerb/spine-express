@@ -1,18 +1,24 @@
 {
   "name": "express-mysql-skeleton",
   "version": "1.0.0",
-  "private": true,
+  "description": "This is a skeleton for an Express and Mysql backend of a restful website or web application.",
   "scripts": {
+    "setup": "node ./bin/setup",
     "start": "node ./bin/www"
   },
+  "author": "Weasnerb",
+  "license": "MIT",
   "dependencies": {
-    "bcrypt": "^1.0.3",
+    "bcryptjs": "^2.4.3",
     "body-parser": "~1.18.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.15.5",
     "jsonwebtoken": "^8.1.0",
     "morgan": "~1.9.0",
-    "mysql": "^2.15.0"
+    "mysql": "^2.15.0",
+    "promptly": "^3.0.3",
+    "replace": "^0.3.0",
+    "uuid": "^3.2.1"
   }
 }

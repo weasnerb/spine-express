@@ -6,8 +6,8 @@
 
 ## Express Setup
 1. Open terminal/cmd in express-mysql-skelton folder and run `npm install`
-2. Go to config folder. Copy all .template files into same folder without the .template extension.
-3. In newly copied files, replace all ****** with actual values.
+2. Run `npm run setup` and fill in information.
+    - If you mess up, just re-run `npm run setup`
 
 ## Database Setup
 1. Start an instance of MySql and/or make a new Schema for this project.

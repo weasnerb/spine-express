@@ -1,7 +1,7 @@
 'use strict';
 
 const appConfig = require('../../config/appConfig'),
-    bcrypt = require('bcrypt'),
+    bcrypt = require('bcryptjs'),
     jwt = require('jsonwebtoken'),
     userModel = require('../user/userModel');
 
@@ -13,7 +13,7 @@ const appConfig = require('../../config/appConfig'),
  */
 exports.verifyAndDecodeJwt = function (req, res, next) {
     if (req.headers && req.headers.authorization && req.headers.authorization.split(' ')[0] === 'JWT') {
-        jwt.verify(req.headers.authorization.split(' ')[1], appConfig.jwtSecret, function (error, decode) {
+        jwt.verify(req.headers.authorization.split(' ')[1], appConfig.secret, function (error, decode) {
             req.user = (error) ? undefined : decode;
             next();
         });
@@ -170,5 +170,5 @@ function signJWT(userId, username, email) {
         id: userId,
         username: username,
         email: email
-    }, appConfig.jwtSecret);
+    }, appConfig.secret);
 }

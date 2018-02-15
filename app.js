@@ -37,7 +37,7 @@ app.use('/api', api);
 /**
  * Serve Static Files
  */
-if (appConfig.staticRoute || appConfig.staticRoute !== '******') {
+if (appConfig.staticRoute) {
   app.use(express.static(appConfig.staticRoute));
 }
 

@@ -1,13 +1,14 @@
 // This is a template .js file
-// Simply create appConfig.js from this file and replace all ****** with the actual values.
-// If you are not serving static files, either leave the staticRoute value as ****** or remove staticRoute from appConfig
-const fs = require('fs');
+// Simply create appConfig.js from this file.
+// Replace all ****** with the actual values as these are required to run.
+// If the value is undefined it is not necessary. If you wish to use it replace undefined with proper value.
+// If the value is already given it is a set default. You can change it if you wish.
 
 const appConfig = {
     name: '******',
-    jwtSecret: fs.readFileSync('******'),
     saltRounds: 12,
-    staticRoute: '******'
+    secret: '******',
+    staticRoute: undefined
 };
 
 // Need to export the variable for use.

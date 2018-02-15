@@ -1,11 +1,14 @@
 // This is a template .js file
-// Simply create dbConfig.js from this file and replace all ****** with the actual values.
+// Simply create dbConfig.js from this file.
+// Replace all ****** with the actual values as these are required to run.
+// If the value is undefined it is not necessary. If you wish to use it replace undefined with proper value.
+// If the value is already given it is a set default. You can change it if you wish.
 
 const dbConfig = {
-    'host': '******',
-    'user': '******',
-    'password': '******',
-    'database': '******'
+    host: '******',
+    database: '******',
+    user: '******',
+    password: '******'
 };
 
 // Need to export the variable for use.

@@ -1,0 +1,107 @@
+#!/usr/bin/env node
+
+'use strict';
+
+/**
+ * Module dependencies.
+ */
+const configFilePath = './config/',
+    fs = require('fs'),
+    promptly = require('promptly'),
+    replace = require('replace'),
+    uuidv4 = require('uuid/v4');
+
+/**
+ * Setup (Main function)
+ */
+function setup() {
+    copyTemplateFiles();
+    changeConfigValues();
+};
+
+/**
+ * Copies .template files to files without .template extension for use in the application.
+ */
+async function copyTemplateFiles() {
+    const files = fs.readdirSync(configFilePath);
+    for (let file of files) {
+        if (file.includes('.template')) {
+            fs.copyFileSync(configFilePath + file, configFilePath + file.replace('.template', ''));
+        }
+    }
+}
+
+/**
+ * Prompts user to fill out values for each key
+ */
+async function changeConfigValues() {
+    const files = fs.readdirSync(configFilePath);
+    for (let file of files) {
+        if (!file.includes('.template') && file.includes('.js')) {
+            let currentConfigFile = file.replace('.js', '');
+            console.log("Editing " + currentConfigFile + " values!");
+
+            // Require happens relative to file being run, not where file is run from, therefore ../config/ not ./config/
+            currentConfigFile = require('../config/' + currentConfigFile);
+            let valuesToReplace = {};
+            for (let key in currentConfigFile) {
+                if (currentConfigFile.hasOwnProperty(key)) {
+                    let value = currentConfigFile[key];
+                    if (value) {
+                        if (value === '******') {
+                            if (key === 'secret') {
+                                let answer = await promptly.prompt("Generate a secret for signing Auth? (y/n):\n> ");
+                                if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+                                    valuesToReplace[key] = uuidv4();
+                                } else {
+                                    valuesToReplace[key] = await promptly.prompt("What is the value of " + key + ":\n> ");
+                                }
+                            } else {
+                                valuesToReplace[key] = await promptly.prompt("What is the value of " + key + ":\n> ");
+                            }
+
+                        } else {
+                            let answer = await promptly.prompt("Override Default value of " + value + " for " + key + "? (y/n):\n> ");
+                            if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+                                valuesToReplace[key] = await promptly.prompt("What is the value of " + key + ":\n> ");
+                            }
+                        }
+
+                    } else {
+                        let answer = await promptly.prompt(key + " is not necessary to set, do you wish to set it for use? (y/n):\n> ");
+                        if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+                            valuesToReplace[key] = await promptly.prompt("What is the value of " + key + ":\n> ");
+                        }
+                    }
+                }
+            }
+            replaceValuesInFiles(file, valuesToReplace)
+            console.log();
+        }
+    }
+};
+
+/**
+ * Replaces the Values of the Keys in the specified Config File
+ * @param file Config File where values will be replaced
+ * @param valuesToReplace Values to replace in Config File
+ */
+function replaceValuesInFiles(file, valuesToReplace) {
+    // Replace values
+    for (let key in valuesToReplace) {
+        if (valuesToReplace.hasOwnProperty(key)) {
+            let value = valuesToReplace[key];
+            replace({
+                regex: key + ".+,?",
+                replacement: key + ": '" + value + "',",
+                paths: [configFilePath + file],
+                silent: true,
+            });
+        }
+    }
+}
+
+/**
+ * Run the Setup
+ */
+setup();
