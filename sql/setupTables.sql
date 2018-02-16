@@ -5,6 +5,7 @@ CREATE TABLE Users
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     emailVerified BOOLEAN DEFAULT 0,
+    verifyEmailCode VARCHAR(36) NOT NULL,
     password VARCHAR(255) NOT NULL,
     created DATETIME DEFAULT CURRENT_TIMESTAMP  NOT NULL
 );

@@ -6,8 +6,9 @@ const db = require('../mySql');
  * Get User from their id
  * @param {number} userId 
  * @param {boolean} [wantPasswordReturned] 
+ * @param {boolean} [wantVerifyEmailCodeReturned]
  */
-exports.getUserFromId = function (userId, wantPasswordReturned) {
+exports.getUserFromId = function (userId, wantPasswordReturned, wantVerifyEmailCodeReturned) {
     return new Promise((resolve, reject) => {
         db.query('SELECT * FROM Users WHERE id = ?', [userId], function (error, results, fields) {
             if (error) {
@@ -15,6 +16,9 @@ exports.getUserFromId = function (userId, wantPasswordReturned) {
             } else {
                 if (!wantPasswordReturned) {
                     results[0].password = undefined;
+                }
+                if (!wantVerifyEmailCodeReturned) {
+                    results[0].verifyEmailCode = undefined
                 }
                 resolve(results[0]);
             }
@@ -35,9 +39,10 @@ exports.getUserGroups = function (userId) {
 /**
  * Get User by their email
  * @param {string} userEmail 
- * @param {boolean} [wantPasswordReturned] 
+ * @param {boolean} [wantPasswordReturned]
+ * @param {boolean} [wantVerifyEmailCodeReturned]
  */
-exports.getUserFromEmail = function (userEmail, wantPasswordReturned) {
+exports.getUserFromEmail = function (userEmail, wantPasswordReturned, wantVerifyEmailCodeReturned) {
     return new Promise((resolve, reject) => {
         db.query('SELECT * FROM Users WHERE email = ?', [userEmail], function (error, results, fields) {
             if (error) {
@@ -45,6 +50,9 @@ exports.getUserFromEmail = function (userEmail, wantPasswordReturned) {
             } else {
                 if (!wantPasswordReturned) {
                     results[0].password = undefined;
+                }
+                if (!wantVerifyEmailCodeReturned) {
+                    results[0].verifyEmailCode = undefined
                 }
                 resolve(results[0]);
             }
@@ -58,9 +66,9 @@ exports.getUserFromEmail = function (userEmail, wantPasswordReturned) {
  * @param {string} email 
  * @param {string} password 
  */
-exports.saveUser = function (username, email, password) {
+exports.saveUser = function (username, email, password, verifyEmailCode) {
     return new Promise((resolve, reject) => {
-        db.query('INSERT INTO Users SET username = ?, email = ?, password = ?', [username, email, password], function (error, results, fields) {
+        db.query('INSERT INTO Users SET username = ?, email = ?, password = ?, verifyEmailCode = ?', [username, email, password, verifyEmailCode], function (error, results, fields) {
             if (error) {
                 reject(error);
             } else {

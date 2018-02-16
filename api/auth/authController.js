@@ -3,7 +3,10 @@
 const appConfig = require('../../config/appConfig'),
     bcrypt = require('bcryptjs'),
     jwt = require('jsonwebtoken'),
-    userModel = require('../user/userModel');
+    mailConfig = require('../../config/mailConfig'),
+    mailer = require('../mailer'),
+    userModel = require('../user/userModel'),
+    uuidv4 = require('uuid/v4');
 
 /**
  * Middleware to check if request's authorization header is valid, if valid it sets req.user to decoded data.
@@ -48,8 +51,9 @@ exports.loginRequired = function (req, res, next) {
 exports.register = function (req, res) {
     if (req.body.username && req.body.email && req.body.password) {
         bcrypt.hash(req.body.password, appConfig.saltRounds).then(function (hashedPassword) {
-            userModel.saveUser(req.body.username, req.body.email, hashedPassword).then(function (userId) {
-                userModel.getUserFromId(userId).then(function (user) {
+            userModel.saveUser(req.body.username, req.body.email, hashedPassword, uuidv4()).then(function (userId) {
+                userModel.getUserFromId(userId, false, true).then(function (user) {
+                    sendEmailVerification(user.id, user.email, user.username, user.verifyEmailCode);
                     return res.json({
                         'token': "JWT " + signJWT(user.id, user.username, user.email),
                         'user': user
@@ -157,6 +161,66 @@ exports.changePassword = function (req, res) {
             message: "Valid currentPassword and newPassword required."
         });
     }
+}
+
+/**
+ * Use to Verify Email.
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.verifyEmail = function(req, res) {
+    if (req.params.userId && req.params.verifyEmailCode) {
+        userModel.getUserFromId(req.params.userId, false, true).then(function (user) {
+            if (user.verifyEmailCode === req.params.verifyEmailCode) {
+                    userModel.updateUser(user.id, ['emailVerified'], [1]).then(function (user) {
+                    return res.json({
+                        message: "Email successfully verified."
+                    });
+                }).catch((err) => {
+                    return res.status(400).json({
+                        message: "Could Not Verify Email."
+                    });
+                });
+            } else {
+                return res.status(400).json({
+                    message: "Could Not Verify Email."
+                });
+            }
+        }).catch((err) => {
+            return res.status(400).json({
+                message: "User was not found."
+            });
+        });
+    } else {
+        return res.status(400).json( {
+            message: "Must pass in valid userId and email code to verify email."
+        });
+    }
+}
+
+/**
+ * Sends Email to Verify User's Email Address
+ * @param {number} userId 
+ * @param {string} email 
+ * @param {string} username 
+ * @param {string} verifyEmailCode 
+ */
+function sendEmailVerification(userId, email, username, verifyEmailCode) {
+    let mailOptions = {
+        from: mailConfig.user,
+        to: email,
+        subject: 'Verify Email',
+        html: '<h1>Verify Email</h1><a href="/api/auth/verifyEmail/' + userId + '/' + verifyEmailCode + '">Click Here to Verify Email</a>'
+    };
+
+    // send mail with defined transport object
+    mailer.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Message sent: %s', info.messageId);
+        }
+    });
 }
 
 /**
