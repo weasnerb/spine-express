@@ -51,9 +51,10 @@ exports.loginRequired = function (req, res, next) {
 exports.register = function (req, res) {
     if (req.body.username && req.body.email && req.body.password) {
         bcrypt.hash(req.body.password, appConfig.saltRounds).then(function (hashedPassword) {
-            userModel.saveUser(req.body.username, req.body.email, hashedPassword, uuidv4()).then(function (userId) {
-                userModel.getUserFromId(userId, false, true).then(function (user) {
-                    sendEmailVerification(user.id, user.email, user.username, user.verifyEmailCode);
+            let verifyEmailCode = uuidv4();
+            userModel.saveUser(req.body.username, req.body.email, hashedPassword, verifyEmailCode).then(function (userId) {
+                userModel.getUserFromId(userId).then(function (user) {
+                    sendEmailVerification(user.id, user.email, user.username, verifyEmailCode);
                     return res.json({
                         'token': "JWT " + signJWT(user.id, user.username, user.email),
                         'user': user
