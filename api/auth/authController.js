@@ -165,6 +165,24 @@ exports.changePassword = function (req, res) {
 }
 
 /**
+ * Send an Email to User's Email for User Email Verification
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.resendEmailVerificationEmail = function(req, res) {
+    userModel.getUserFromId(req.user.id, false, true).then((user) => {
+        sendEmailVerification(user.id, user.email, user.username, user.verifyEmailCode);
+        return res.json({
+            message: "Email Sent."
+        });
+    }).catch((error) => {
+        return res.status(400).json({
+            message: "Error Sending Email."
+        })
+    })
+}
+
+/**
  * Use to Verify Email.
  * @param {*} req 
  * @param {*} res 
@@ -210,8 +228,8 @@ function sendEmailVerification(userId, email, username, verifyEmailCode) {
     let mailOptions = {
         from: mailConfig.user,
         to: email,
-        subject: 'Verify Email',
-        html: '<h1>Verify Email</h1><a href="/api/auth/verifyEmail/' + userId + '/' + verifyEmailCode + '">Click Here to Verify Email</a>'
+        subject: 'Welcome! Please Verify Your Email',
+        html: '<h1>Welcome to ' + appConfig.applicationName + '!</h1><h2>Confirm your email address to get started!</h2><a href="' + appConfig.applicationBaseUrl + '/api/auth/verifyEmail/' + userId + '/' + verifyEmailCode + '">Click Here to Verify Email</a>'
     };
 
     // send mail with defined transport object

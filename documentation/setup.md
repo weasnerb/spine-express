@@ -8,8 +8,18 @@
 1. Open terminal/cmd in express-mysql-skelton folder and run `npm install`
 2. Run `npm run setup` and fill in information.
     - If you mess up, just re-run `npm run setup`
+    - Note: Db Variables are setup for using docker instance
+    - Note: Mail variables will only be used if verifyEmail in appConfig.js is true.
 
 ## Database Setup
+### Using Docker
+1. Open terminal/cmd in express-mysql-skeleton folder and run `cd docker/mySqlDb/`
+2. Run `docker-compose up -d`.
+    - Note: It may take a while for the database to become fully initialized and ready to accept connections.
+    - To check the status of the Mysql docker container run `docker-compose ps` to see if it is still up.
+        - If it is not, you can get more information by running `docker-compose logs`
+
+### Not Using Docker
 1. Start an instance of MySql and/or make a new Schema for this project.
     - If you do not have MySql Installed:
         - You can download and install it from [mysql.com](https://dev.mysql.com/downloads/mysql/)

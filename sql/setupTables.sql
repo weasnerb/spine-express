@@ -13,19 +13,19 @@ CREATE UNIQUE INDEX Users_email_uindex ON Users (email);
 
 
 # User Groups
-CREATE TABLE Groups
+CREATE TABLE UserGroups
 (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL
 );
-CREATE UNIQUE INDEX Groups_name_uindex ON Groups (name);
+CREATE UNIQUE INDEX Groups_name_uindex ON UserGroups (name);
 
 
-# User to Group Table
-CREATE TABLE UserGroups
+# User UserGroup Cross Reference Table
+CREATE TABLE UserUserGroupsXRef
 (
     userId INT NOT NULL,
     groupId INT NOT NULL,
     CONSTRAINT User_fk FOREIGN KEY (userId) REFERENCES Users (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT Group_fk FOREIGN KEY (groupId) REFERENCES Groups (id) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT Group_fk FOREIGN KEY (groupId) REFERENCES UserGroups (id) ON DELETE CASCADE ON UPDATE CASCADE
 );

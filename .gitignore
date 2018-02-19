@@ -2,6 +2,9 @@
 config/*
 !config/*.template
 
+# Docker
+docker/mySqlDb/data
+
 # Logs
 logs
 *.log

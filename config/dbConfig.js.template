@@ -5,10 +5,10 @@
 // If the value is already given it is a set default. You can change it if you wish.
 
 const dbConfig = {
-    host: '******',
-    database: '******',
-    user: '******',
-    password: '******'
+    host: 'localhost',
+    database: 'MyDb',
+    user: 'myuser',
+    password: 'myuserpassword'
 };
 
 // Need to export the variable for use.
