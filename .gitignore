@@ -3,7 +3,7 @@ config/*
 !config/*.template
 
 # Docker
-docker/mySqlDb/data
+docker/mySqlDbData
 
 # Logs
 logs
