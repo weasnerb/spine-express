@@ -6,12 +6,12 @@
 
 const appConfig = {
     applicationName: '******',
-    applicationBaseUrl: '******',
+    applicationDomain: 'localhost:3000',
+    requireVerifiedEmailToLogin: false,
     saltRounds: 12,
     secret: '******',
-    staticRoute: undefined,
-    verifyEmail: false,
-    requireVerifiedEmailToLogin: false
+    sessionMaxAgeMs: undefined,
+    staticRoute: undefined
 };
 
 // Need to export the variable for use.

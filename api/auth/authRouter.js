@@ -6,11 +6,13 @@ router.post('/register', authController.register);
 
 router.post('/login', authController.login);
 
+router.post('/logout', authController.logout);
+
 router.post('/changePassword', authController.loginRequired, authController.changePassword);
 
-router.post('/verifyEmail/resendEmail', authController.loginRequired, authController.resendEmailVerificationEmail)
+router.post('/verifyEmail/', authController.verifyEmail);
 
-router.get('/verifyEmail/:userId/:verifyEmailCode', authController.verifyEmail);
+router.post('/verifyEmail/resendEmail', authController.loginRequired, authController.resendEmailVerificationEmail)
 
 // Need to export the router variable for use in api.js.
 module.exports = router;

@@ -4,14 +4,9 @@ const express = require('express'),
   app = express(),
   appConfig = require('./config/appConfig'),
   authController = require('./api/auth/authController'),
-  cookieParser = require('cookie-parser'),
   bodyParser = require('body-parser'),
-  logger = require('morgan');
-
-/**
- * Logging
- */
-app.use(logger('dev'));
+  cookieParser = require('cookie-parser'),
+  expressSession = require('express-session');
 
 /**
  * Top Level Parser Settings
@@ -23,9 +18,24 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 
 /**
- * Set user to Decoded JWT user on every request
+ * Configure and Setup Sessions
  */
-app.use((req, res, next) => authController.verifyAndDecodeJwt(req, res, next));
+let sessionConfig = {
+  resave: true,
+  saveUninitialized: false,
+  secret: appConfig.secret
+}
+
+if (appConfig.sessionMaxAgeMs) {
+  sessionConfig.cookie.maxAge = appConfig.sessionMaxAgeMs;
+}
+
+if (app.get('env') === 'production') {
+  app.set('trust proxy', 1); // trust first proxy
+  sessionConfig.cookie.secure = true; // serve secure cookies
+}
+
+app.use(expressSession(sessionConfig));
 
 /**
  * Routing

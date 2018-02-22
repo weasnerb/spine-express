@@ -47,7 +47,7 @@ async function changeConfigValues() {
             for (let key in currentConfigFile) {
                 if (currentConfigFile.hasOwnProperty(key)) {
                     let value = currentConfigFile[key];
-                    if (value) {
+                    if (value != null) {
                         if (value === '******') {
                             if (key === 'secret') {
                                 let answer = await promptly.prompt("Generate a secret for signing Auth? (y/n):\n> ");

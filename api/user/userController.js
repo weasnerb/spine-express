@@ -8,13 +8,17 @@ const userModel = require('./userModel');
  * @param {*} res 
  */
 exports.getLoggedInUser = function (req, res) {
-    userModel.getUserFromId(req.user.id).then(function (user) {
+    userModel.getUserFromId(req.session.user.id).then(function (user) {
         return res.json({
-            'user': user
+            'success': true,
+            'data': {
+                'user': user
+            }
         });
     }).catch((error) => {
         return res.status(400).json({
-            message: "There was an issue retrieving user with id: " + req.user.id
+            'success': false,
+            'message': "There was an issue retrieving user with id: " + req.session.user.id
         });
     })
 };
@@ -25,13 +29,17 @@ exports.getLoggedInUser = function (req, res) {
  * @param {*} res 
  */
 exports.deleteLoggedInUser = function (req, res) {
-    userModel.deleteUser(req.user.id).then(function (userId) {
+    userModel.deleteUser(req.session.user.id).then(function (userId) {
         return res.json({
-            deletedUserId: userId
+            'success': true,
+            'data': {
+                'deletedUserId': userId
+            }
         });
     }).catch((error) => {
         return res.status(400).json({
-            message: "There was an issue deleting user with id: " + req.user.id
+            'success': false,
+            'message': "There was an issue deleting user with id: " + req.session.user.id
         });
     })
 };
