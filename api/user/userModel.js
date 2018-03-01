@@ -14,6 +14,10 @@ exports.getUserFromId = function (userId, wantPasswordReturned, wantVerifyEmailC
             if (error) {
                 reject(error);
             } else {
+                if (results.length == 0) {
+                    reject();
+                    return;
+                }
                 if (!wantPasswordReturned) {
                     results[0].password = undefined;
                 }
@@ -27,16 +31,6 @@ exports.getUserFromId = function (userId, wantPasswordReturned, wantVerifyEmailC
 };
 
 /**
- * 
- * @param {number} userId 
- */
-exports.getUserGroups = function (userId) {
-    return new Promise((resolve, reject) => {
-        db.query('Select ')
-    });
-}
-
-/**
  * Get User by their email
  * @param {string} userEmail 
  * @param {boolean} [wantPasswordReturned]
@@ -48,6 +42,10 @@ exports.getUserFromEmail = function (userEmail, wantPasswordReturned, wantVerify
             if (error) {
                 reject(error);
             } else {
+                if (results.length == 0) {
+                    reject();
+                    return;
+                }
                 if (!wantPasswordReturned) {
                     results[0].password = undefined;
                 }
@@ -93,6 +91,8 @@ exports.updateUser = function (id, fields, values) {
         fields.forEach(element => {
             sql += element + ' = ? '
         });
+        sql += 'WHERE `id` = ?'
+        values.push(id);
 
         db.query(sql, values, function (error, results, fields) {
             if (error) {
@@ -119,3 +119,28 @@ exports.deleteUser = function (userId) {
         });
     })
 };
+
+/**
+ * Gets the user's roles
+ * @param {number} userId 
+ */
+exports.getUserRoles = function (userId) {
+    return new Promise((resolve, reject) => {
+        db.query('Select Roles.name ' +
+            'FROM Roles ' +
+            'JOIN UsersRolesXRef URXR ON Roles.id = URXR.roleId ' +
+            'Where URXR.userId = ?',
+            [userId],
+            function (error, results, fields) {
+                if (error) {
+                    reject(error);
+                } else {
+                    let userRolesArray = [];
+                    for (let role of results) {
+                        userRolesArray.push(role.name);
+                    }
+                    resolve(userRolesArray);
+                }
+            })
+    });
+}

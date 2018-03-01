@@ -9,5 +9,9 @@ api.use('/auth', auth);
 const user = require('./user/userRouter');
 api.use('/user', user);
 
+// Set /api/role to use role
+const role = require('./role/roleRouter');
+api.use('/role', role);
+
 // Need to export the api variable for use in app.js.
 module.exports = api;

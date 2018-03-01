@@ -3,12 +3,11 @@ const express = require('express'),
     authController = require('../auth/authController'),
     userController = require('./userController');
 
-/**
- * To make login required, use the middleware userController.loginRequired
- */
 router.get('/', authController.loginRequired, userController.getLoggedInUser);
 
 router.delete('/', authController.loginRequired, userController.deleteLoggedInUser);
+
+router.get('/roles', authController.loginRequired, userController.getUserRoles);
 
 // Need to export the router variable for use in api.js.
 module.exports = router;

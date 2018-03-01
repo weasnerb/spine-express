@@ -26,13 +26,43 @@ exports.loginRequired = function (req, res, next) {
 };
 
 /**
- * Return 401 unauthorized if user is not of required groups.
+ * Middleware to only run next() if user is of at least one required role.
+ * Note: loginRequired does not need to be run before roleRequired.
  * @param {*} req 
  * @param {*} res 
- * @param {*} groupsRequiredToContinue 
+ * @param {string|string[]} roleRequired (role, or one of roles required)
  */
-exports.requiredGroups = function (req, res, groupsRequiredToContinue) {
-    //TODO Implement Me!!!!
+exports.roleRequired = function (roleRequired) {
+    return function (req, res, next) {
+        exports.loginRequired(req, res, function () {
+            userModel.getUserRoles(req.session.user.id).then(function (userRoles) {
+                if (typeof roleRequired == 'string') {
+                    if (userRoles.indexOf(roleRequired) > -1) {
+                        next();
+                        return;
+                    }
+                } else if (Array.isArray(roleRequired)) {
+                    for (let role of roleRequired) {
+                        if (userRoles.indexOf(role) > -1) {
+                            next();
+                            return;
+                        }
+                    }
+                }
+
+                return res.status(401).json({
+                    'success': false,
+                    'message': 'User does not have required role!'
+                });
+
+            }).catch((error) => {
+                return res.status(401).json({
+                    'success': false,
+                    'message': 'Error checking if user has required role!'
+                });
+            })
+        })
+    }
 }
 
 /**

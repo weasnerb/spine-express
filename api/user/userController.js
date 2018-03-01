@@ -18,7 +18,7 @@ exports.getLoggedInUser = function (req, res) {
     }).catch((error) => {
         return res.status(400).json({
             'success': false,
-            'message': "There was an issue retrieving user with id: " + req.session.user.id
+            'message': "Unable to retrieve user with id: " + req.session.user.id
         });
     })
 };
@@ -39,7 +39,28 @@ exports.deleteLoggedInUser = function (req, res) {
     }).catch((error) => {
         return res.status(400).json({
             'success': false,
-            'message': "There was an issue deleting user with id: " + req.session.user.id
+            'message': "Unable to delete user with id: " + req.session.user.id
         });
     })
 };
+
+/**
+ * Gets the roles of the user
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.getUserRoles = function (req, res) {
+    userModel.getUserRoles(req.session.user.id).then(function (userRoles) {
+        return res.json({
+            'success': true,
+            'data': {
+                'roles': userRoles
+            }
+        });
+    }).catch((error) => {
+        return res.status(400).json({
+            'success': false,
+            'message': "Unable to get the roles of user with id: " + req.session.user.id
+        });
+    })
+}
