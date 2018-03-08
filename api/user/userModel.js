@@ -114,7 +114,11 @@ exports.deleteUser = function (userId) {
             if (error) {
                 reject(error);
             } else {
-                resolve(userId);
+                if (results.affectedRows == 0) {
+                    reject();
+                } else {
+                    resolve(userId);
+                }
             }
         });
     })

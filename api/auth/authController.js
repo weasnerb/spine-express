@@ -20,7 +20,7 @@ exports.loginRequired = function (req, res, next) {
     } else {
         return res.status(401).json({
             'success': false,
-            'message': 'Unauthorized user!'
+            'message': 'User not logged in!'
         });
     }
 };
@@ -58,7 +58,7 @@ exports.roleRequired = function (roleRequired) {
             }).catch((error) => {
                 return res.status(401).json({
                     'success': false,
-                    'message': 'Error checking if user has required role!'
+                    'message': 'Unable to check if user has required role!'
                 });
             })
         })
@@ -89,12 +89,15 @@ exports.register = function (req, res) {
         let verifyEmailCode = uuidv4();
         userModel.saveUser(req.body.username, req.body.email, hashedPassword, verifyEmailCode).then(function (userId) {
             userModel.getUserFromId(userId).then(function (user) {
-                req.session.user = {
-                    isAuthenticated: true,
-                    id: user.id
-                };
-
                 sendEmailVerification(user.id, user.email, user.username, verifyEmailCode);
+
+                // Start authenticated session only if user has verified email
+                if (!appConfig.requireVerifiedEmailToLogin) {
+                    req.session.user = {
+                        isAuthenticated: true,
+                        id: user.id
+                    };
+                }
 
                 return res.json({
                     'success': true,
@@ -150,6 +153,15 @@ exports.login = function (req, res) {
     }
 
     userModel.getUserFromEmail(req.body.email, true).then(function (user) {
+        if (appConfig.requireVerifiedEmailToLogin) {
+            if (user.emailVerified == 0) {
+                return res.status(401).json({
+                    'success': false,
+                    'message': "User must verify email before they can login."
+                });
+            }
+        }
+
         bcrypt.compare(req.body.password, user.password).then(function (isValid) {
             if (isValid) {
                 req.session.user = {
@@ -267,24 +279,8 @@ exports.changePassword = function (req, res) {
     });
 }
 
-/**
- * Send an Email to User's Email for User Email Verification
- * @param {*} req 
- * @param {*} res 
- */
-exports.resendEmailVerificationEmail = function (req, res) {
-    userModel.getUserFromId(req.session.user.id, false, true).then((user) => {
-        sendEmailVerification(user.id, user.email, user.username, user.verifyEmailCode);
-        return res.json({
-            'success': true,
-            'message': "Email Sent."
-        });
-    }).catch((error) => {
-        return res.status(400).json({
-            'success': false,
-            'message': "Error Sending Email."
-        })
-    })
+exports.forgotPassword = function(req, res) {
+
 }
 
 /**
@@ -325,6 +321,26 @@ exports.verifyEmail = function (req, res) {
             'message': "User was not found."
         });
     });
+}
+
+/**
+ * Send an Email to User's Email for User Email Verification
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.resendEmailVerificationEmail = function (req, res) {
+    userModel.getUserFromId(req.session.user.id, false, true).then((user) => {
+        sendEmailVerification(user.id, user.email, user.username, user.verifyEmailCode);
+        return res.json({
+            'success': true,
+            'message': "Email Sent."
+        });
+    }).catch((error) => {
+        return res.status(400).json({
+            'success': false,
+            'message': "Error Sending Email."
+        })
+    })
 }
 
 /**

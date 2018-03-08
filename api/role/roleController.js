@@ -16,12 +16,7 @@ exports.getRole = function (req, res) {
     }
 
     roleModel.getRoleFromId(req.body.roleId).then(function (role) {
-        return res.json({
-            'success': true,
-            'data': {
-                'role': role
-            }
-        });
+
     }).catch((error) => {
         return res.status(400).json({
             'success': false,
@@ -29,6 +24,27 @@ exports.getRole = function (req, res) {
         });
     })
 };
+
+/**
+ * Get all Roles
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.getAllRoles = function (req, res) {
+    roleModel.getAllRoles().then(function (roles) {
+        return res.json({
+            'success': true,
+            'data': {
+                'roles': roles
+            }
+        });
+    }).catch((error) => {
+        return res.status(400).json({
+            'success': false,
+            'message': "Unable to retrieve all roles."
+        });
+    })
+}
 
 /**
  * Add a new role

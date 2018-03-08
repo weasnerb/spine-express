@@ -23,6 +23,22 @@ exports.getRoleFromId = function (roleId) {
 };
 
 /**
+ * Get all Roles
+ */
+exports.getAllRoles = function() {
+    return new Promise((resolve, reject) => {
+        db.query('Select * From Roles', function(error, results, fields) {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(results);
+            }
+
+        })
+    })
+}
+
+/**
  * Save new Role in Database
  * @param {string} nameOfNewRole
  */

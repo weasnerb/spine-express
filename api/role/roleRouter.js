@@ -5,7 +5,7 @@ const express = require('express'),
 
 router.get('/', authController.roleRequired('admin'), roleController.getRole);
 
-//router.get('/', authController.roleRequired('admin'), roleController.getAllRoles);
+router.get('/all', authController.roleRequired('admin'), roleController.getAllRoles);
 
 router.post('/', authController.roleRequired('admin'), roleController.addRole);
 
