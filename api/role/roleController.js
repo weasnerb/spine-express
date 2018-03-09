@@ -15,11 +15,6 @@ exports.getRole = function (req, res) {
         });
     }
 
-    if (req.params.roleId === "all") {
-        exports.getAllRoles(req, res);
-        return;
-    }
-
     roleModel.getRoleFromId(req.params.roleId).then(function (role) {
         return res.json({
             'success': true,
@@ -40,7 +35,7 @@ exports.getRole = function (req, res) {
  * @param {*} req 
  * @param {*} res 
  */
-exports.getAllRoles = function (req, res) {
+exports.getAllRoles = function (req, res) { 
     roleModel.getAllRoles().then(function (roles) {
         return res.json({
             'success': true,

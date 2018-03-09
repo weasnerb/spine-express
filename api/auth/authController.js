@@ -88,7 +88,7 @@ exports.register = function (req, res) {
     bcrypt.hash(req.body.password, appConfig.saltRounds).then(function (hashedPassword) {
         let verifyEmailCode = uuidv4();
         userModel.saveUser(req.body.username, req.body.email, hashedPassword, verifyEmailCode).then(function (userId) {
-            userModel.getUserFromId(userId).then(function (user) {
+            userModel.getUserById(userId).then(function (user) {
                 if (appConfig.useMailer) {
                     sendEmailVerification(user.id, user.email, user.username, verifyEmailCode);
                 }
@@ -154,7 +154,7 @@ exports.login = function (req, res) {
         });
     }
 
-    userModel.getUserFromEmail(req.body.email, true).then(function (user) {
+    userModel.getUserByEmail(req.body.email, true).then(function (user) {
         if (appConfig.requireVerifiedEmailToLogin) {
             if (user.emailVerified == 0) {
                 return res.status(401).json({
@@ -240,7 +240,7 @@ exports.changePassword = function (req, res) {
         });
     }
 
-    userModel.getUserFromId(req.session.user.id, true).then(function (user) {
+    userModel.getUserById(req.session.user.id, true).then(function (user) {
         bcrypt.compare(req.body.currentPassword, user.password).then(function (isValid) {
             if (isValid) {
                 bcrypt.hash(req.body.newPassword, appConfig.saltRounds).then(function (hashedPassword) {
@@ -298,7 +298,7 @@ exports.verifyEmail = function (req, res) {
         });
     }
 
-    userModel.getUserFromId(req.params.userId, false, true).then(function (user) {
+    userModel.getUserById(req.params.userId, false, true).then(function (user) {
         if (user.verifyEmailCode === req.params.verifyEmailCode) {
             userModel.updateUser(user.id, ['emailVerified'], [1]).then(function (user) {
                 return res.json({
@@ -331,7 +331,7 @@ exports.verifyEmail = function (req, res) {
  * @param {*} res 
  */
 exports.resendEmailVerificationEmail = function (req, res) {
-    userModel.getUserFromId(req.session.user.id, false, true).then((user) => {
+    userModel.getUserById(req.session.user.id, false, true).then((user) => {
         sendEmailVerification(user.id, user.email, user.username, user.verifyEmailCode);
         return res.json({
             'success': true,

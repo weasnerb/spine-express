@@ -8,7 +8,7 @@ const db = require('../mySql');
  * @param {boolean} [wantPasswordReturned] 
  * @param {boolean} [wantVerifyEmailCodeReturned]
  */
-exports.getUserFromId = function (userId, wantPasswordReturned, wantVerifyEmailCodeReturned) {
+exports.getUserById = function (userId, wantPasswordReturned, wantVerifyEmailCodeReturned) {
     return new Promise((resolve, reject) => {
         db.query('SELECT * FROM Users WHERE id = ?', [userId], function (error, results, fields) {
             if (error) {
@@ -36,7 +36,7 @@ exports.getUserFromId = function (userId, wantPasswordReturned, wantVerifyEmailC
  * @param {boolean} [wantPasswordReturned]
  * @param {boolean} [wantVerifyEmailCodeReturned]
  */
-exports.getUserFromEmail = function (userEmail, wantPasswordReturned, wantVerifyEmailCodeReturned) {
+exports.getUserByEmail = function (userEmail, wantPasswordReturned, wantVerifyEmailCodeReturned) {
     return new Promise((resolve, reject) => {
         db.query('SELECT * FROM Users WHERE email = ?', [userEmail], function (error, results, fields) {
             if (error) {
@@ -53,6 +53,33 @@ exports.getUserFromEmail = function (userEmail, wantPasswordReturned, wantVerify
                     results[0].verifyEmailCode = undefined
                 }
                 resolve(results[0]);
+            }
+        });
+    });
+};
+
+/**
+ * Get All Users
+ */
+exports.getAllUsers = function () {
+    return new Promise((resolve, reject) => {
+        db.query('SELECT * FROM Users', function (error, results, fields) {
+            if (error) {
+                reject(error);
+            } else {
+                if (results.length == 0) {
+                    reject();
+                    return;
+                }
+
+                let users = [];
+                for (let user of results) {
+                    user.password = undefined;
+                    user.verifyEmailCode = undefined
+                    users.push(user);
+                }
+
+                resolve(users);
             }
         });
     });
@@ -148,3 +175,41 @@ exports.getUserRoles = function (userId) {
             })
     });
 }
+
+/**
+ * Give role to user
+ * @param {number} userId 
+ * @param {number} roleId
+ */
+exports.giveRole = function (userId, roleId) {
+    return new Promise((resolve, reject) => {
+        db.query('INSERT INTO UsersRolesXRef SET userId = ?, roleId = ?;', [userId, roleId], function (error, results, fields) {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(results.insertId);
+            }
+        });
+    });
+}
+
+/**
+ * Remove role from user
+ * @param {number} userId 
+ * @param {number} roleId
+ */
+exports.removeRole = function (userId, roleId) {
+    return new Promise((resolve, reject) => {
+        db.query('DELETE FROM UsersRolesXRef WHERE userId = ? AND roleId = ?;', [userId, roleId], function (error, results, fields) {
+            if (error) {
+                reject(error);
+            } else {
+                if (results.affectedRows == 0) {
+                    reject();
+                } else {
+                    resolve(userId);
+                }
+            }
+        });
+    })
+};
