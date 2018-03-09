@@ -1,5 +1,5 @@
 {
-  "name": "express-mysql-skeleton",
+  "name": "spine-express",
   "version": "1.0.0",
   "description": "This is a skeleton for an Express and Mysql backend of a restful website or web application.",
   "scripts": {

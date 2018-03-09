@@ -2,33 +2,9 @@
 
 ## [<- Back](../README.md)
 
-## Response Types
-### Success: 
-Status 200 OK
-```
-{
-    'success': true,
-    'data': {}
-}
-```
-### Failure:
-Status 401 Unauthorized
-```
-{
-    'success': false,
-    'message': 'This is a message to display to users.'
-}
-```
-
-Status 400 Bad Request
-```
-{
-    'success': false,
-    'message': 'This is a message to display to users.'
-}
-```
-
+## [Response Types](./api/responseTypes.md)
 
 ## Routes
 * [Authentication](./api/auth.md)
+* [Role](./api/role.md)
 * [User](./api/user.md)

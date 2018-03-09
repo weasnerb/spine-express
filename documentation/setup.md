@@ -13,7 +13,7 @@
 
 ## Database Setup
 ### Using Docker
-1. Open terminal/cmd in express-mysql-skeleton folder and run `cd docker/mySqlDb/`
+1. Open terminal/cmd in Spine-Express folder and run `cd docker/mySqlDb/`
 2. Run `docker-compose up -d`.
     - Note: It may take a while for the database to become fully initialized and ready to accept connections.
     - To check the status of the Mysql docker container run `docker-compose ps` to see if it is still up.

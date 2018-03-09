@@ -8,7 +8,7 @@ const roleModel = require('./roleModel');
  * @param {*} res 
  */
 exports.getRole = function (req, res) {
-    if (!req.body.roleId) {
+    if (!req.params.roleId) {
         return res.status(400).json({
             'success': false,
             'message': 'Valid roleId required.'

@@ -20,6 +20,8 @@ CREATE TABLE Roles
 );
 CREATE UNIQUE INDEX Roles_name_uindex ON Roles (name);
 
+# Insert Initial Admin Role
+INSERT INTO Roles (name) VALUES ('admin');
 
 # User Roles Cross Reference Table
 CREATE TABLE UsersRolesXRef

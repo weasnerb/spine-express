@@ -10,7 +10,7 @@ router.post('/logout', authController.logout);
 
 router.post('/changePassword', authController.loginRequired, authController.changePassword);
 
-//router.post('/forgotPassword', authController.loginRequired, authController.forgotPassword);
+//router.post('/forgotPassword', authController.forgotPassword);
 
 router.post('/verifyEmail/', authController.verifyEmail);
 

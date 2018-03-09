@@ -3,7 +3,7 @@ const express = require('express'),
     authController = require('../auth/authController'),
     roleController = require('./roleController');
 
-router.get('/', authController.roleRequired('admin'), roleController.getRole);
+router.get('/:roleId', authController.roleRequired('admin'), roleController.getRole);
 
 router.get('/all', authController.roleRequired('admin'), roleController.getAllRoles);
 
