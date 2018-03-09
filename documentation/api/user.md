@@ -12,6 +12,13 @@ Requires user performing request to have admin role
 Requires user performing request to have admin role
 #### **GET** `/api/user/all`
 
+# Update User's Username
+#### **PUT** `/api/user/`
+#### BODY
+Key | Description | Required
+--- | --- | ---
+username | username to update to | *
+
 # Delete Current User
 #### **DELETE** `/api/user`
 

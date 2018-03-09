@@ -73,7 +73,35 @@ exports.getAllUsers = function (req, res) {
 };
 
 /**
- * Delete a the current user
+ * Update the current user's username
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.updateUsername = function (req, res) {
+    if (!req.body.username) {
+        return res.status(400).json({
+            'success': false,
+            'message': 'Valid username required.'
+        });
+    }
+    
+    userModel.updateUser(req.session.user.id, ['username'], [req.body.username]).then(function (changedRows) {
+        return res.json({
+            'success': true,
+            'data': {
+                'numberOfchangedRows': changedRows
+            }
+        });
+    }).catch((error) => {
+        return res.status(400).json({
+            'success': false,
+            'message': "Unable to update user with id: " + req.session.user.id
+        });
+    })
+};
+
+/**
+ * Delete the current user
  * @param {*} req 
  * @param {*} res 
  */

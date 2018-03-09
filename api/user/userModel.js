@@ -125,7 +125,12 @@ exports.updateUser = function (id, fields, values) {
             if (error) {
                 reject(error);
             } else {
-                resolve(results);
+                if (results.affectedRows == 0) {
+                    reject();
+                } else {
+                    resolve(results.changedRows);
+                }
+            
             }
         });
     });
