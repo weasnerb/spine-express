@@ -9,7 +9,7 @@
 2. Run `npm run setup` and fill in information.
     - If you mess up, just re-run `npm run setup`
     - Note: Db Variables are setup for using docker instance
-    - Note: Mail variables will only be used if verifyEmail in appConfig.js is true.
+    - Note: E-Mailer will only be used if useMailer in appConfig.js is true.
 
 ## Database Setup
 ### Using Docker

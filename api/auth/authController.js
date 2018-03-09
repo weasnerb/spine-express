@@ -89,7 +89,9 @@ exports.register = function (req, res) {
         let verifyEmailCode = uuidv4();
         userModel.saveUser(req.body.username, req.body.email, hashedPassword, verifyEmailCode).then(function (userId) {
             userModel.getUserFromId(userId).then(function (user) {
-                sendEmailVerification(user.id, user.email, user.username, verifyEmailCode);
+                if (appConfig.useMailer) {
+                    sendEmailVerification(user.id, user.email, user.username, verifyEmailCode);
+                }
 
                 // Start authenticated session only if user has verified email
                 if (!appConfig.requireVerifiedEmailToLogin) {
@@ -292,7 +294,7 @@ exports.verifyEmail = function (req, res) {
     if (!(req.body.userId && req.body.verifyEmailCode)) {
         return res.status(400).json({
             'success': false,
-            'message': "Must pass in valid userId and email code to verify email."
+            'message': "Must pass in valid userId and verifyEmailCode to verify email."
         });
     }
 

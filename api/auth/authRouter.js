@@ -1,4 +1,5 @@
 var express = require('express'),
+    appConfig = require('../../config/appConfig'),
     router = express.Router(),
     authController = require('./authController');
 
@@ -12,9 +13,11 @@ router.post('/changePassword', authController.loginRequired, authController.chan
 
 //router.post('/forgotPassword', authController.forgotPassword);
 
-router.post('/verifyEmail/', authController.verifyEmail);
+if (appConfig.useMailer) {
+    router.post('/verifyEmail/', authController.verifyEmail);
 
-router.post('/verifyEmail/resendEmail', authController.loginRequired, authController.resendEmailVerificationEmail)
+    router.post('/verifyEmail/resendEmail', authController.loginRequired, authController.resendEmailVerificationEmail)
+}
 
 // Need to export the router variable for use in api.js.
 module.exports = router;

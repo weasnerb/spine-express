@@ -15,12 +15,22 @@ exports.getRole = function (req, res) {
         });
     }
 
-    roleModel.getRoleFromId(req.body.roleId).then(function (role) {
+    if (req.params.roleId === "all") {
+        exports.getAllRoles(req, res);
+        return;
+    }
 
+    roleModel.getRoleFromId(req.params.roleId).then(function (role) {
+        return res.json({
+            'success': true,
+            'data': {
+                'role': role
+            }
+        });
     }).catch((error) => {
         return res.status(400).json({
             'success': false,
-            'message': "Unable to retrieve role with id: " + req.body.roleId
+            'message': "Unable to retrieve role with id: " + req.params.roleId
         });
     })
 };

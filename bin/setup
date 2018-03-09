@@ -91,9 +91,11 @@ function replaceValuesInFiles(file, valuesToReplace) {
     for (let key in valuesToReplace) {
         if (valuesToReplace.hasOwnProperty(key)) {
             let value = valuesToReplace[key];
+            let isValueBoolean = (value === 'true' || value == 'false');
+            let replacement = key + (isValueBoolean ? ": " + value + "," : ": '" + value + "',")
             replace({
                 regex: key + ".+,?",
-                replacement: key + ": '" + value + "',",
+                replacement: replacement,
                 paths: [configFilePath + file],
                 silent: true,
             });

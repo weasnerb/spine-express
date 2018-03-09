@@ -5,6 +5,8 @@ const express = require('express'),
 
 router.get('/', authController.loginRequired, userController.getLoggedInUser);
 
+//router.get('/:userId', authController.roleRequired('admin'), userController.getUserById);
+
 //router.put('/', authController.loginRequired, userController.updateUser);
 
 router.delete('/', authController.loginRequired, userController.deleteLoggedInUser);

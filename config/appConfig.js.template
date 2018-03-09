@@ -11,7 +11,8 @@ const appConfig = {
     saltRounds: 12,
     secret: '******',
     sessionMaxAgeMs: undefined,
-    staticRoute: undefined
+    staticRoute: undefined,
+    useMailer: true
 };
 
 // Need to export the variable for use.
