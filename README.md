@@ -1,5 +1,5 @@
 # Spine Express
-This is a skeleton for an Express and Mysql backend of a restful website or web application.
+Spine Express allows a developer to setup a RESTful Express and MySQL backend with built in user and role authentication in 4 simple steps
 
 ### [Setup](./documentation/setup.md)
 ### [Running the App](./documentation/runningTheApp.md)

@@ -1,7 +1,7 @@
 {
   "name": "spine-express",
   "version": "1.0.0",
-  "description": "This is a skeleton for an Express and Mysql backend of a restful website or web application.",
+  "description": "Spine Express allows a developer to setup a RESTful Express and MySQL backend with built in user and role authentication in 4 simple steps",
   "scripts": {
     "setup": "node ./bin/setup",
     "start": "node ./bin/www"
