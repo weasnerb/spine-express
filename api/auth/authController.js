@@ -4,6 +4,8 @@ const appConfig = require('../../config/appConfig'),
     bcrypt = require('bcryptjs'),
     mailConfig = require('../../config/mailConfig'),
     mailer = require('../mailer'),
+    QRCode = require('qrcode'),
+    speakeasy = require('speakeasy'),
     userModel = require('../user/userModel'),
     uuidv4 = require('uuid/v4');
 
@@ -97,7 +99,8 @@ exports.register = function (req, res) {
                 if (!appConfig.requireVerifiedEmailToLogin) {
                     req.session.user = {
                         isAuthenticated: true,
-                        id: user.id
+                        id: user.id,
+                        email: user.email
                     };
                 }
 
@@ -168,7 +171,8 @@ exports.login = function (req, res) {
             if (isValid) {
                 req.session.user = {
                     isAuthenticated: true,
-                    id: user.id
+                    id: user.id,
+                    email: user.email
                 };
 
                 // Don't send back the hashed password!
@@ -283,6 +287,48 @@ exports.changePassword = function (req, res) {
 
 exports.forgotPassword = function(req, res) {
 
+}
+
+exports.setupTwoFactorAuth = function(req, res) {
+    var secret = speakeasy.generateSecret();
+    var otpauthURL = speakeasy.otpauthURL({'secret': secret.ascii, 'label': req.session.user.email, 'issuer': appConfig.applicationName});
+
+    QRCode.toDataURL(otpauthURL)
+        .then(url => {
+            return res.json({
+                'success': true,
+                'data': url
+            });
+        })
+        .catch(error => {
+            return res.status(400).json({
+                'success': false,
+                'message': "Issue Generating QR Code"
+            });
+        });
+}
+
+exports.verifyTwoFactorAuth = function(req, res) {
+    if (!(req.body.token)) {
+        return res.status(400).json({
+            'success': false,
+            'message': "Must pass in valid token to verify Two Factor Auth."
+        });
+    }
+    if (req.session.user.tempTwoFactorAuthSecret) {
+        var verified = speakeasy.totp.verify({ secret: req.session.user.tempTwoFactorAuthSecret.base32, encoding: 'base32', token: req.body.token });
+        if (verified) {
+            return res.json({
+                'success': true,
+                'data': "Token successfully verified."
+            });
+        } else {
+            return res.status(400).json({
+                'success': false,
+                'message': "Could Not Verify Token."
+            });
+        }
+    }
 }
 
 /**
