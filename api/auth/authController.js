@@ -428,7 +428,7 @@ exports.verifyMfaToken = function (req, res) {
             user.mfaSecret = undefined;
             return res.json({
                 'success': true,
-                'data': {'user': user}
+                'data': { 'user': user }
             });
         } else {
             return res.status(400).json({
@@ -440,6 +440,25 @@ exports.verifyMfaToken = function (req, res) {
         return res.status(400).json({
             'success': false,
             'message': "Could Not Verify Token."
+        });
+    });
+}
+
+/**
+ * Remove Mfa functionality from current user
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.removeMfa = function (req, res) {
+    userModel.updateUser(req.session.user.id, ['tempMfaSecret', 'mfaSecret'], [null, null]).then(() => {
+        return res.json({
+            'success': true,
+            'data': "Mfa was successfully disabled."
+        });
+    }).catch((error) => {
+        return res.status(400).json({
+            'success': false,
+            'message': "Could not disable MFA."
         });
     });
 }

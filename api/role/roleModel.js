@@ -80,7 +80,7 @@ exports.updateRole = function (id, fields, values) {
             if (error) {
                 reject(error);
             } else {
-                if (results.affectedRows == 0) {
+                if (results.changedRows == 0) {
                     reject();
                 } else {
                     resolve(results);                    
