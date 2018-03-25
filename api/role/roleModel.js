@@ -66,9 +66,13 @@ exports.updateRole = function (id, fields, values) {
             reject("Number of fields and values do not match.")
         }
         var sql = 'UPDATE Roles SET '
-        fields.forEach(element => {
-            sql += "`" + element + '` = ? '
-        });
+        for (let fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+            sql += fields[fieldIndex] + ' = ?'
+            if (fieldIndex < fields.length - 1) {
+                sql += ",";
+            }
+            sql += " ";
+        }
         sql += 'WHERE `id` = ?'
         values.push(id);
 
@@ -76,7 +80,7 @@ exports.updateRole = function (id, fields, values) {
             if (error) {
                 reject(error);
             } else {
-                if (results.affectedRows == 0) {
+                if (results.changedRows == 0) {
                     reject();
                 } else {
                     resolve(results);                    

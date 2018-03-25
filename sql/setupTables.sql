@@ -7,6 +7,8 @@ CREATE TABLE Users
     emailVerified BOOLEAN DEFAULT 0,
     verifyEmailCode VARCHAR(36) NOT NULL,
     password VARCHAR(255) NOT NULL,
+    tempMfaSecret VARCHAR(52) DEFAULT NULL,
+    mfaSecret VARCHAR(52) DEFAULT NULL,
     created DATETIME DEFAULT CURRENT_TIMESTAMP  NOT NULL
 );
 CREATE UNIQUE INDEX Users_email_uindex ON Users (email);

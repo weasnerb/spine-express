@@ -19,7 +19,9 @@
     "mysql": "^2.15.0",
     "nodemailer": "^4.4.2",
     "promptly": "^3.0.3",
+    "qrcode": "^1.2.0",
     "replace": "^0.3.0",
+    "speakeasy": "^2.0.0",
     "uuid": "^3.2.1"
   }
 }

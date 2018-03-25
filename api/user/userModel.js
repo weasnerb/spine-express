@@ -7,8 +7,10 @@ const db = require('../mySql');
  * @param {number} userId 
  * @param {boolean} [wantPasswordReturned] 
  * @param {boolean} [wantVerifyEmailCodeReturned]
+ * @param {boolean} [wantMfaSecret] 
+ * @param {boolean} [wantTempMfaSecret]
  */
-exports.getUserById = function (userId, wantPasswordReturned, wantVerifyEmailCodeReturned) {
+exports.getUserById = function (userId, wantPasswordReturned, wantVerifyEmailCodeReturned, wantMfaSecret, wantTempMfaSecret) {
     return new Promise((resolve, reject) => {
         db.query('SELECT * FROM Users WHERE id = ?', [userId], function (error, results, fields) {
             if (error) {
@@ -24,6 +26,12 @@ exports.getUserById = function (userId, wantPasswordReturned, wantVerifyEmailCod
                 if (!wantVerifyEmailCodeReturned) {
                     results[0].verifyEmailCode = undefined
                 }
+                if (!wantMfaSecret) {
+                    results[0].mfaSecret = undefined;
+                }
+                if (!wantTempMfaSecret) {
+                    results[0].tempMfaSecret = undefined;
+                }
                 resolve(results[0]);
             }
         });
@@ -35,8 +43,10 @@ exports.getUserById = function (userId, wantPasswordReturned, wantVerifyEmailCod
  * @param {string} userEmail 
  * @param {boolean} [wantPasswordReturned]
  * @param {boolean} [wantVerifyEmailCodeReturned]
+ * @param {boolean} [wantMfaSecret]
+ * @param {boolean} [wantTempMfaSecret]
  */
-exports.getUserByEmail = function (userEmail, wantPasswordReturned, wantVerifyEmailCodeReturned) {
+exports.getUserByEmail = function (userEmail, wantPasswordReturned, wantVerifyEmailCodeReturned, wantMfaSecret, wantTempMfaSecret) {
     return new Promise((resolve, reject) => {
         db.query('SELECT * FROM Users WHERE email = ?', [userEmail], function (error, results, fields) {
             if (error) {
@@ -50,7 +60,13 @@ exports.getUserByEmail = function (userEmail, wantPasswordReturned, wantVerifyEm
                     results[0].password = undefined;
                 }
                 if (!wantVerifyEmailCodeReturned) {
-                    results[0].verifyEmailCode = undefined
+                    results[0].verifyEmailCode = undefined;
+                }
+                if (!wantMfaSecret) {
+                    results[0].mfaSecret = undefined;
+                }
+                if (!wantTempMfaSecret) {
+                    results[0].tempMfaSecret = undefined;
                 }
                 resolve(results[0]);
             }
@@ -75,7 +91,9 @@ exports.getAllUsers = function () {
                 let users = [];
                 for (let user of results) {
                     user.password = undefined;
-                    user.verifyEmailCode = undefined
+                    user.verifyEmailCode = undefined;
+                    user.mfaSecret = undefined;
+                    user.tempMfaSecret = undefined;
                     users.push(user);
                 }
 
@@ -115,9 +133,13 @@ exports.updateUser = function (id, fields, values) {
             reject("Number of fields and values do not match.")
         }
         var sql = 'UPDATE Users SET '
-        fields.forEach(element => {
-            sql += element + ' = ? '
-        });
+        for (let fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+            sql += fields[fieldIndex] + ' = ?'
+            if (fieldIndex < fields.length - 1) {
+                sql += ",";
+            }
+            sql += " ";
+        }
         sql += 'WHERE `id` = ?'
         values.push(id);
 
@@ -125,12 +147,12 @@ exports.updateUser = function (id, fields, values) {
             if (error) {
                 reject(error);
             } else {
-                if (results.affectedRows == 0) {
+                if (results.changedRows == 0) {
                     reject();
                 } else {
                     resolve(results.changedRows);
                 }
-            
+
             }
         });
     });
