@@ -104,6 +104,7 @@ exports.register = function (req, res) {
                     };
                 }
 
+                // Always Logged in as soon as registered as no mfa is immediately set.
                 return res.json({
                     'success': true,
                     'data': {
@@ -157,32 +158,42 @@ exports.login = function (req, res) {
         });
     }
 
-    userModel.getUserByEmail(req.body.email, true).then(function (user) {
-        if (appConfig.requireVerifiedEmailToLogin) {
-            if (user.emailVerified == 0) {
-                return res.status(401).json({
-                    'success': false,
-                    'message': "User must verify email before they can login."
-                });
-            }
+    userModel.getUserByEmail(req.body.email, true, false, true).then(function (user) {
+        if (appConfig.requireVerifiedEmailToLogin && user.emailVerified == 0) {
+            return res.status(401).json({
+                'success': false,
+                'message': "User must verify email before they can login."
+            });
         }
 
         bcrypt.compare(req.body.password, user.password).then(function (isValid) {
             if (isValid) {
                 req.session.user = {
-                    isAuthenticated: true,
+                    isAuthenticated: (user.mfaSecret) ? false : true,
+                    awaitingMFA: (user.mfaSecret) ? true : undefined,
                     id: user.id,
                     email: user.email
                 };
 
-                // Don't send back the hashed password!
+                // Don't send back the hashed password or mfa secret!
                 user.password = undefined;
-                return res.json({
-                    'success': true,
-                    'data': {
-                        'user': user
-                    }
-                });
+                user.mfaSecret = undefined;
+                if (req.session.user.awaitingMFA) {
+                    return res.json({
+                        'success': true,
+                        'data': {
+                            'awaitingMfaAuth': true,
+                            'message': 'Awaiting Mfa verification to complete login.'
+                        }
+                    });
+                } else {
+                    return res.json({
+                        'success': true,
+                        'data': {
+                            'user': user
+                        }
+                    });
+                }
             } else {
                 res.status(401).json({
                     'success': false,
@@ -219,14 +230,18 @@ exports.logout = function (req, res) {
             } else {
                 res.json({
                     'success': true,
-                    'message': "You have been successfully logged out!"
+                    'data': {
+                        'message': "You have been successfully logged out!"
+                    }
                 });
             }
         });
     } else {
         res.json({
             'success': true,
-            'message': "No one to logout."
+            'data': {
+                'message': "No one to logout."
+            }
         });
     }
 }
@@ -251,7 +266,9 @@ exports.changePassword = function (req, res) {
                     userModel.updateUser(user.id, ['password'], [hashedPassword]).then(function (user) {
                         return res.json({
                             'success': true,
-                            'message': "Password successfully changed."
+                            'data': {
+                                'message': "Password successfully changed."
+                            }
                         });
                     }).catch((err) => {
                         return res.status(400).json({
@@ -285,50 +302,146 @@ exports.changePassword = function (req, res) {
     });
 }
 
-exports.forgotPassword = function(req, res) {
+/**
+ * Reset Forgotten Password
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.forgotPassword = function (req, res) {
 
 }
 
-exports.setupTwoFactorAuth = function(req, res) {
+/**
+ * Get Mfa data for user to add to Mfa App
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.setupMfa = function (req, res) {
     var secret = speakeasy.generateSecret();
-    var otpauthURL = speakeasy.otpauthURL({'secret': secret.ascii, 'label': req.session.user.email, 'issuer': appConfig.applicationName});
+    var otpauthURL = speakeasy.otpauthURL({ 'secret': secret.ascii, 'label': req.session.user.email, 'issuer': appConfig.applicationName });
 
-    QRCode.toDataURL(otpauthURL)
-        .then(url => {
-            return res.json({
-                'success': true,
-                'data': url
+    userModel.updateUser(req.session.user.id, ['tempMfaSecret'], [secret.base32]).then(() => {
+        QRCode.toDataURL(otpauthURL)
+            .then(url => {
+                req.session.user.awaitingMFA = true;
+                return res.json({
+                    'success': true,
+                    'data': {
+                        'base32': secret.base32,
+                        'QRCodeImgData': url
+                    }
+                });
+            })
+            .catch(error => {
+                return res.status(400).json({
+                    'success': false,
+                    'message': "Issue Generating QR Code"
+                });
             });
-        })
-        .catch(error => {
-            return res.status(400).json({
-                'success': false,
-                'message': "Issue Generating QR Code"
-            });
+    }).catch((error) => {
+        return res.status(400).json({
+            'success': false,
+            'message': "Could not save a temporary MfaSecret for later validation."
         });
+    });
 }
 
-exports.verifyTwoFactorAuth = function(req, res) {
+/**
+ * Verify Temp Mfa Token to complete setup of Mfa on logged in account
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.verifyTempMfaToken = function (req, res) {
     if (!(req.body.token)) {
         return res.status(400).json({
             'success': false,
             'message': "Must pass in valid token to verify Two Factor Auth."
         });
     }
-    if (req.session.user.tempTwoFactorAuthSecret) {
-        var verified = speakeasy.totp.verify({ secret: req.session.user.tempTwoFactorAuthSecret.base32, encoding: 'base32', token: req.body.token });
+    if (!req.session.user || !req.session.user.isAuthenticated || !req.session.user.awaitingMFA) {
+        return res.status(400).json({
+            'success': false,
+            'message': "Mfa Verification is not required at this time."
+        });
+    }
+
+    userModel.getUserById(req.session.user.id, false, false, true, true).then((user) => {
+        if (user.mfaSecret) {
+            return res.status(400).json({
+                'success': false,
+                'message': "Mfa Verification is already enabled."
+            });
+        }
+
+        var verified = speakeasy.totp.verify({ secret: user.tempMfaSecret, encoding: 'base32', token: req.body.token });
         if (verified) {
-            return res.json({
-                'success': true,
-                'data': "Token successfully verified."
+            userModel.updateUser(req.session.user.id, ['tempMfaSecret', 'mfaSecret'], [null, user.tempMfaSecret]).then(() => {
+                req.session.user.awaitingMFA = false;
+                return res.json({
+                    'success': true,
+                    'data': "Token was successfully verified and MFA is now setup."
+                });
+            }).catch((error) => {
+                return res.status(400).json({
+                    'success': false,
+                    'message': "Could Not Setup MFA."
+                });
             });
         } else {
             return res.status(400).json({
                 'success': false,
-                'message': "Could Not Verify Token."
+                'message': "Token is not valid."
             });
         }
+    }).catch((error) => {
+        return res.status(400).json({
+            'success': false,
+            'message': "Could Not Verify Token."
+        });
+    });
+}
+
+/**
+ * Used to Verify Mfa Token to Login
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.verifyMfaToken = function (req, res) {
+    if (!(req.body.token)) {
+        return res.status(400).json({
+            'success': false,
+            'message': "Must pass in valid token to verify Two Factor Auth."
+        });
     }
+    if (!req.session.user || req.session.user.isAuthenticated || !req.session.user.awaitingMFA) {
+        return res.status(400).json({
+            'success': false,
+            'message': "Mfa Verification is not required at this time."
+        });
+    }
+
+    userModel.getUserById(req.session.user.id, false, false, true).then((user) => {
+        var verified = speakeasy.totp.verify({ secret: user.mfaSecret, encoding: 'base32', token: req.body.token });
+        if (verified) {
+            req.session.user.isAuthenticated = true;
+            req.session.user.awaitingMFA = false;
+            user.mfaSecret = undefined;
+            return res.json({
+                'success': true,
+                'data': {'user': user}
+            });
+        } else {
+            return res.status(400).json({
+                'success': false,
+                'message': "Token is not valid."
+            });
+        }
+    }).catch((error) => {
+        return res.status(400).json({
+            'success': false,
+            'message': "Could Not Verify Token."
+        });
+    });
 }
 
 /**
@@ -349,7 +462,9 @@ exports.verifyEmail = function (req, res) {
             userModel.updateUser(user.id, ['emailVerified'], [1]).then(function (user) {
                 return res.json({
                     'success': true,
-                    'message': "Email successfully verified."
+                    'data': {
+                        'message': "Email successfully verified."
+                    }
                 });
             }).catch((err) => {
                 return res.status(400).json({
@@ -381,7 +496,9 @@ exports.resendEmailVerificationEmail = function (req, res) {
         sendEmailVerification(user.id, user.email, user.username, user.verifyEmailCode);
         return res.json({
             'success': true,
-            'message': "Email Sent."
+            'data': {
+                'message': "Email Sent."
+            }
         });
     }).catch((error) => {
         return res.status(400).json({

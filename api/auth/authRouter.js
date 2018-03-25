@@ -7,13 +7,15 @@ router.post('/register', authController.register);
 
 router.post('/login', authController.login);
 
+router.post('/login/mfa', authController.verifyMfaToken);
+
 router.post('/logout', authController.logout);
 
 router.post('/changePassword', authController.loginRequired, authController.changePassword);
 
-router.post('/twoFactorAuthVerify', authController.verifyTwoFactorAuth);
+router.get('/mfaSetup', authController.loginRequired, authController.setupMfa);
 
-router.get('/twoFactorAuthSetup', authController.loginRequired, authController.setupTwoFactorAuth);
+router.post('/mfaSetup', authController.verifyTempMfaToken)
 
 if (appConfig.useMailer) {
     //router.post('/forgotPassword', authController.forgotPassword);
