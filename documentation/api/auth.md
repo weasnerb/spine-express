@@ -19,6 +19,14 @@ Key | Description | Required
 email | Email to Login With | *
 password | Password for Account |*
 
+# Login MFA
+If the account that attempted login has MFA enabled, this verifies the MFA Token to complete login
+### **POST** `/api/auth/login/mfa`
+### BODY
+Key | Description | Required
+--- | --- | ---
+token | MFA token to verify | *
+
 # Logout
 #### **POST** `/api/auth/logout`
 
@@ -40,3 +48,19 @@ verifyEmailCode | Code that verifies email |*
 
 # Resend Email Verification Email
 #### **POST** `/api/auth/verifyEmail/resendEmail`
+
+# Setup MFA
+Setup MFA for an account. Returns the MFA Secret as plaintext and as QR code data.
+### **GET** `/api/auth/mfa`
+
+# Complete MFA Setup
+Verify token to complete setup.
+### **POST** `/api/auth/login/mfa`
+### BODY
+Key | Description | Required
+--- | --- | ---
+token | MFA token to verify | *
+
+# Disable MFA
+Disable MFA login for currently logged in user.
+### **DELETE** `/api/auth/login/mfa`
