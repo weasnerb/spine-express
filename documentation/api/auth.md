@@ -1,4 +1,5 @@
 # Authentication
+
 ## [<- Back](../api.md)
 
 # Register
